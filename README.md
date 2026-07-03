@@ -38,3 +38,9 @@
 ## 更新日志
 
 [CHANGELOG](changelog.md)
+
+## 致谢
+
+- 模块完全基于 [box4magisk](https://github.com/CHIZI-0618/box4magisk) 来的
+- 代码贡献度 [e5](https://github.com/CHIZI-0618) 占比 ___100%___
+- 感谢伟大的 [box4magisk](https://github.com/CHIZI-0618/box4magisk)
