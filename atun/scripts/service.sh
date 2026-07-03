@@ -256,7 +256,7 @@ tun_forward_disable() {
 
 case "$1" in
 start)
-	# save_private_dns
+	save_private_dns
 	display_bin_status || start_service
 	[ $? = "0" ] && tun_forward_enable
 	# ping_fix enable >>/dev/null 2>&1
@@ -264,16 +264,16 @@ start)
 stop)
 	stop_service
 	tun_forward_disable
-	# restore_private_dns
+	restore_private_dns
 	# ping_fix disable >>/dev/null 2>&1
 	;;
 restart)
 	stop_service
 	tun_forward_disable
-	# restore_private_dns
+	restore_private_dns
 	# ping_fix disable >>/dev/null 2>&1
 	sleep 2
-	# save_private_dns
+	save_private_dns
 	start_service
 	[ $? = "0" ] && tun_forward_enable
 	# ping_fix enable >>/dev/null 2>&1

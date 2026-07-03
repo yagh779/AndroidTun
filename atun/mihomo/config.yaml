@@ -54,6 +54,7 @@ sniffer:
 tun:
   enable: true
   stack: mixed
+  device: yagh779
   dns-hijack:
     - "any:53"
     - "tcp://any:53"
