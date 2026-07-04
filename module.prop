@@ -1,7 +1,7 @@
 id=AndroidTun
 name=AndroidTun
-version=20260703
-versionCode=20260703
+version=20260704
+versionCode=20260704
 author=Unknown
 description=AndroidTun
 updateJson=https://raw.githubusercontent.com/yagh779/AndroidTun/main/atun.json
