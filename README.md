@@ -1,8 +1,16 @@
 # AndroidTun / KernelSU / APatch
 
+![GitHub downloads](https://img.shields.io/github/downloads/yagh779/AndroidTun/total?logo=github&logoColor=white&color=ffd166)
+[![Join Telegram Channel](https://img.shields.io/badge/Telegram-Join%20Channel-06d6a0?logo=telegram&logoColor=white)](https://t.me/AndroidTunChat)
+[![Join Telegram Group](https://img.shields.io/badge/Telegram-Join%20Group-118ab2?logo=telegram&logoColor=white)](https://t.me/AndroidTun)
+
+关注我们的频道获取最新消息，或加入我们的群组进行讨论！ 
+
+## 简介
+
 本项目是一个 Magisk / KernelSU / APatch 模块，用于在 Android 设备上部署多种代理核心，包括 **mihomo**、**sing-box**。
 
-支持的透明代理模式：
+支持的透明代理模式（___仅支持Tun模式___）：
 - **TUN**：TCP + UDP（由核心提供，仅 sing-box、mihomo 支持）
 
 ## 免责声明
