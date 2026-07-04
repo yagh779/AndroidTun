@@ -10,7 +10,7 @@
 
 本项目是一个 Magisk / KernelSU / APatch 模块，用于在 Android 设备上部署多种代理核心，包括 **mihomo**、**sing-box**。
 
-支持的透明代理模式（___仅支持Tun模式___）：
+支持的透明代理模式：
 - **TUN**：TCP + UDP（由核心提供，仅 sing-box、mihomo 支持）
 
 ## 免责声明
@@ -27,8 +27,36 @@
 2. 在 Magisk Manager、KernelSU Manager 或 APatch Manager 中安装。
 3. 支持在线更新（更新后重启即可生效）。
 
-配置项请参照 [box4magisk](https://github.com/CHIZI-0618/box4magisk)
-  
+**注意**：
+
+- 模块默认提供的 `mihomo` 核心：[mihomo](https://github.com/MetaCubeX/mihomo)
+- 模块默认提供的 `sing-box` 核心：[sing-box](https://github.com/reF1nd/sing-box)
+
+核心位置位于 `/data/adb/atun/bin/` ，或者也可手动下载对应设备架构的核心可执行文件，放置到 `/data/adb/atun/bin/` 目录下。
+
+## 配置
+
+### 选择代理核心
+
+#### 核心目录
+核心工作目录：`/data/adb/atun/<核心名字>`  
+核心由 `/data/adb/atun/scripts/config.sh` 中的 `bin_name` 决定，可选值：
+
+- `sing-box`（推荐，默认）
+- `mihomo`
+
+**提示**：`mihomo` 和 `sing-box` 自带默认配置文件，已预设好与透明代理配合。建议直接编辑 `proxy-providers` 或 `outbounds` 部分添加您的节点。  
+进阶配置请参考官方文档：
+- [mihomo](https://wiki.metacubex.one)
+- [sing-box](https://sing-boxr.dustinwin.cc.cd)
+
+模块会自动检查配置文件合法性，结果保存在 `/data/adb/atun/run/check.log`。
+
+#### 配置文件
+
+核心配置文件：`/data/adb/atun/scripts/condif.sh`   
+核心热点转发由 `/data/adb/atun/scripts/config.sh` 中的 `tun_device` 决定，请确保该值与你的配置一致，否则无法正确代理热点。
+
 ## 使用方法
 
 ### 常规使用（推荐）
@@ -36,7 +64,14 @@
 - 服务默认开机自启。
 - 通过 Magisk / KernelSU / APatch Manager **启用/禁用模块** 即可实时启停服务（无需重启设备）。
 
-#### 仅使用核心原生 TUN
+### 手动模式
+
+手动命令：
+  - 服务：`/data/adb/atun/scripts/service.sh start|stop|restart|status`
+
+## 其他说明
+
+- 日志位于 `/data/adb/atun/run/` 目录。
 
 ## 卸载
 
