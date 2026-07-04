@@ -4,3 +4,4 @@ version=20260703
 versionCode=20260703
 author=Unknown
 description=AndroidTun
+updateJson=https://raw.githubusercontent.com/yagh779/AndroidTun/main/atun.json
