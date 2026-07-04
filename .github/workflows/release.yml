@@ -21,3 +21,15 @@ jobs:
           tag_name: ${{ github.ref_name }}
           files: atun_*.zip
           generate_release_notes: true
+
+      - name: Upload file to Telegram
+        uses: xireiki/channel-post@v2
+        with:
+          chat_id: "${{ secrets.CHAT_ID }}"
+          bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          path: atun_*.zip
+          context: "大人，有更新啦！"
+          parse_mode: HTML
+          api_id: ${{ secrets.API_ID }}
+          api_hash: ${{ secrets.API_HASH }}
+          method: sendFile
