@@ -1,4 +1,4 @@
-# AndroidTun / KernelSU / APatch
+# AndroidTun Magisk / KernelSU / APatch
 
 ![GitHub downloads](https://img.shields.io/github/downloads/yagh779/AndroidTun/total?logo=github&logoColor=white&color=ffd166)
 [![Join Telegram Channel](https://img.shields.io/badge/Telegram-Join%20Channel-06d6a0?logo=telegram&logoColor=white)](https://t.me/AndroidTunChat)
@@ -54,7 +54,7 @@
 
 #### 配置文件
 
-核心配置文件：`/data/adb/atun/scripts/condif.sh`   
+核心配置文件：`/data/adb/atun/scripts/config.sh`   
 核心热点转发由 `/data/adb/atun/scripts/config.sh` 中的 `tun_device` 决定，请确保该值与你的配置一致，否则无法正确代理热点。
 
 ## 使用方法
@@ -72,6 +72,7 @@
 ## 其他说明
 
 - 日志位于 `/data/adb/atun/run/` 目录。
+- 对应核心目录下有 `status.sh` 可直接运行查看模块运行状态。
 
 ## 卸载
 
