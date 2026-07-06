@@ -1,0 +1,22 @@
+{
+  "version": 3,
+  "rules": [
+    {
+      "domain_keyword": [
+        "stun",
+        "ntp",
+        "time"
+      ],
+      "domain_suffix": [
+        ".market.xiaomi.com",
+        ".msftncsi.com",
+        ".msftconnecttest.com",
+        ".wotgame.cn",
+        ".wggames.cn",
+        ".wowsgame.cn",
+        ".wargaming.net",
+        ".steamcontent.com"
+      ]
+    }
+  ]
+}

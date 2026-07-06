@@ -1,167 +1,187 @@
 {
   "log": {
     "disabled": false,
-    "level": "debug",
+    "level": "info",
     "output": "./src/log.txt",
     "timestamp": true
   },
-  "experimental": {
-    "cache_file": {
-      "enabled": true,
-      "path": "cache.db",
-      "store_fakeip": true
-    },
-    "clash_api": {
-      "default_mode": "Rule",
-      "external_controller": "0.0.0.0:9090",
-      "secret": "singbox",
-      "external_ui": "zashboard",
-      "external_ui_download_url": "https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip"
-    }
-  },
-  "services": [
-    {
-      "type": "api",
-      "listen": "::",
-      "listen_port": 9999,
-      "secret": "singbox",
-      "dashboard": true
-    }
-  ],
-  "http_clients": [
-    {
-      "tag": "s-download",
-      "detour": "Proxy"
-    }
-  ],
   "dns": {
     "servers": [
+      {
+        "type": "group",
+        "tag": "unknown-dns",
+        "servers": [
+          "unknownalidns",
+          "unknowndnspod"
+        ]
+      },
+      {
+        "type": "group",
+        "tag": "direct-dns",
+        "servers": [
+          "alidns",
+          "dnspod"
+        ]
+      },
+      {
+        "type": "https",
+        "tag": "unknowndnspod",
+        "detour": "BaiduDirect",
+        "domain_resolver": "hosts",
+        "server": "doh.pub"
+      },
+      {
+        "type": "https",
+        "tag": "unknownalidns",
+        "detour": "BaiduDirect",
+        "domain_resolver": "hosts",
+        "server": "dns.alidns.com"
+      },
+      {
+        "type": "https",
+        "tag": "dnspod",
+        "domain_resolver": "hosts",
+        "server": "doh.pub"
+      },
+      {
+        "type": "quic",
+        "tag": "alidns",
+        "domain_resolver": "hosts",
+        "server": "dns.alidns.com"
+      },
       {
         "type": "hosts",
         "tag": "hosts",
         "predefined": {
           "doh.pub": [
-            "120.53.53.53",
-            "1.12.12.12"
+            "1.12.12.12",
+            "120.53.53.53"
+          ],
+          "dns.alidns.com": [
+            "223.5.5.5",
+            "223.6.6.6"
           ]
         }
       },
       {
-        "tag": "dns-proxy",
-        "type": "group",
-        "servers": [
-          "cloudflare",
-          "google"
-        ]
-      },
-      {
-        "tag": "dns-direct",
-        "type": "group",
-        "servers": [
-          "tencent",
-          "ali"
-        ]
-      },
-      {
-        "tag": "cloudflare",
-        "type": "https",
-        "server": "1.1.1.1",
-        "detour": "Proxy"
-      },
-      {
-        "tag": "google",
-        "type": "https",
-        "server": "8.8.8.8",
-        "detour": "Proxy"
-      },
-      {
-        "tag": "tencent",
-        "type": "https",
-        "server": "doh.pub",
-        "domain_resolver": "hosts"
-      },
-      {
-        "tag": "ali",
-        "type": "https",
-        "server": "223.6.6.6"
-      },
-      {
-        "tag": "remote",
         "type": "fakeip",
-        "inet4_range": "198.18.0.0/15",
-        "inet6_range": "fc00::/18"
+        "tag": "fakedns",
+        "inet4_range": "28.0.0.1/8",
+        "inet6_range": "fc00::/16"
+      },
+      {
+        "type": "local",
+        "tag": "local"
       }
     ],
     "rules": [
       {
-        "clash_mode": "Direct",
-        "action": "route",
-        "server": "dns-direct"
+        "type": "logical",
+        "mode": "and",
+        "rules": [
+          {
+            "query_type": "AAAA"
+          },
+          {
+            "default_interface_address": "2000::/3",
+            "invert": true
+          }
+        ],
+        "action": "reject"
       },
       {
-        "rule_set": [
-          "direct",
-          "alibaba",
-          "category-games@cn"
+        "query_type": [
+          "SVCB",
+          "HTTPS"
         ],
-        "action": "route",
-        "server": "ali"
-      },
-      {
-        "rule_set": [
-          "proxy"
-        ],
-        "action": "route",
-        "server": "dns-proxy"
+        "action": "reject"
       },
       {
         "type": "logical",
         "mode": "and",
         "rules": [
           {
-            "clash_mode": "AllowAds",
+            "query_type": "PTR"
+          },
+          {
+            "rule_set": "private",
+            "invert": true
+          }
+        ],
+        "action": "reject"
+      },
+      {
+        "type": "logical",
+        "mode": "and",
+        "rules": [
+          {
+            "clash_mode": "Rule-AllowAds",
             "invert": true
           },
           {
             "rule_set": [
-              "block",
-              "AWAvenue",
-              "category-ads-all"
+              "pcdn-cn",
+              "reject-domain",
+              "category-ads-all",
+              "category-httpdns-cn"
             ]
           }
         ],
         "action": "reject"
       },
       {
-        "rule_set": [
-          "cn-domain"
-        ],
-        "action": "route",
-        "server": "dns-direct"
+        "rule_set": "private",
+        "server": "local"
+      },
+      {
+        "rule_set": "fakeip-filter-domain",
+        "server": "unknown-dns"
       },
       {
         "query_type": [
           "A",
           "AAAA"
         ],
-        "action": "route",
-        "server": "remote"
+        "server": "fakedns",
+        "rewrite_ttl": 0
       }
     ],
-    "optimistic": true,
-    "strategy": "prefer_ipv4"
+    "final": "unknown-dns",
+    "default_reject_rcode": "NOERROR",
+    "cache_capacity": 4096,
+    "optimistic": true
   },
+  "http_clients": [
+    {
+      "tag": "download_update",
+      "headers": {
+        "User-Agent": "clash.meta/alpha-acbc92f"
+      },
+      "detour": "Update"
+    },
+    {
+      "tag": "download_proxy",
+      "detour": "Proxy"
+    }
+  ],
   "inbounds": [
     {
       "type": "mixed",
-      "tag": "mixed_in",
-      "listen": "::",
-      "listen_port": 7080
+      "tag": "download-in",
+      "listen": "127.0.0.1",
+      "listen_port": 12306
+    },
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "127.0.0.1",
+      "listen_port": 10086
     },
     {
       "type": "tun",
       "tag": "tun-in",
       "interface_name": "yagh779",
+      "mtu": 65535,
       "address": [
         "172.19.0.1/30",
         "fdfe:dcba:9876::1/126"
@@ -169,191 +189,519 @@
       "auto_route": true,
       "auto_redirect": true,
       "strict_route": true,
-      "stack": "mixed"
+      "stack": "mixed",
+      "route_exclude_address": [
+        "10.0.0.0/8",
+        "172.16.0.0/12",
+        "192.168.0.0/16",
+        "fc00::/7"
+      ]
     }
   ],
   "outbounds": [
     {
-      "tag": "direct",
-      "type": "direct"
+      "type": "direct",
+      "tag": "Direct"
     },
     {
-      "tag": "Proxy",
+      "type": "http",
+      "tag": "BaiduDirect",
+      "server": "cloudnproxy.n.shifen.com",
+      "server_port": 443,
+      "headers": {
+        "Host": "153.3.236.22:443",
+        "X-T5-Auth": "683556433"
+      }
+    },
+    {
       "type": "selector",
+      "tag": "Proxy",
       "outbounds": [
-        "direct"
+        "Direct",
+        "Hong Kong",
+        "United States",
+        "Singapore",
+        "Japan"
       ],
-      "default": "direct",
+      "default": "Hong Kong",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "Domestic",
+      "outbounds": [
+        "Direct",
+        "Hong Kong",
+        "United States",
+        "Singapore",
+        "Japan"
+      ],
+      "default": "Direct",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "Telegram",
+      "include": "(?i)(🇸🇬|新加坡|狮城|sg|singapore)",
+      "use_all_providers": true,
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "Google&Github",
+      "outbounds": [
+        "Hong Kong",
+        "United States",
+        "Singapore",
+        "Japan"
+      ],
+      "default": "Hong Kong",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "Ai",
+      "outbounds": [
+        "Hong Kong",
+        "United States",
+        "Singapore",
+        "Japan"
+      ],
+      "default": "United States",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "Emby",
+      "providers": [
+        "bilibili"
+      ],
+      "exclude": "(?i)(🇯🇵|jp|japan|日本|🇺🇸|美国|洛杉矶|unitedstates|united states)",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "Update",
+      "outbounds": [
+        "Direct",
+        "Hong Kong",
+        "United States",
+        "Singapore",
+        "Japan"
+      ],
+      "default": "Direct",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "Download",
+      "outbounds": [
+        "Direct"
+      ],
+      "providers": [
+        "bilibili"
+      ],
+      "default": "Direct",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "Hong Kong",
+      "include": "(?i)(🇭🇰|香港|hk|hongkong|hong kong)",
+      "use_all_providers": true,
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "United States",
+      "include": "(?i)(🇺🇸|美国|洛杉矶|unitedstates|united states)",
+      "use_all_providers": true,
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "Singapore",
+      "include": "(?i)(🇸🇬|新加坡|狮城|sg|singapore)",
+      "use_all_providers": true,
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "Japan",
+      "include": "(?i)(🇯🇵|日本|东京|樱花|jp|japan)",
       "use_all_providers": true,
       "interrupt_exist_connections": true
     }
   ],
   "providers": [
     {
-      "tag": "Provider1",
       "type": "remote",
-      "url": "url",
-      "exclude": "节点|剩余|套餐|客服|官网",
-      "path": "./source/Provider1.json",
+      "tag": "bilibili",
+      "url": "https://bilibili.com",
+      "path": "./ProxyProviders/bilibili.json",
+      "http_client": "download_update",
       "update_interval": "24h",
-      "user_agent": "clash.meta/alpha/mihomo",
       "health_check": {
         "enabled": true,
-        "url": "https://www.gstatic.com/generate_204",
-        "interval": "30m",
-        "timeout": "3s"
+        "url": "https://cp.cloudflare.com/generate_204",
+        "interval": "24h"
+      },
+      "override_dialer": {
+        "tcp_fast_open": false,
+        "domain_resolver": "unknown-dns"
       }
     }
   ],
   "route": {
-    "default_domain_resolver": "ali",
-    "rule_set": [
-      {
-        "tag": "block",
-        "type": "local",
-        "format": "source",
-        "path": "./source/block.json"
-      },
-      {
-        "tag": "direct",
-        "type": "local",
-        "format": "source",
-        "path": "./source/direct.json"
-      },
-      {
-        "tag": "proxy",
-        "type": "local",
-        "format": "source",
-        "path": "./source/proxy.json"
-      },
-      {
-        "tag": "AWAvenue",
-        "type": "remote",
-        "format": "source",
-        "url": "https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/refs/heads/main/Filters/AWAvenue-Ads-Rule-Singbox.json",
-        "update_interval": "24h",
-        "path": "./source/AWAvenue.json"
-      },
-      {
-        "tag": "category-ads-all",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://raw.githubusercontent.com/CHIZI-0618/v2ray-rules-dat/release/singbox_rule_set/geosite-category-ads-all.srs",
-        "update_interval": "24h",
-        "path": "./source/category-ads-all.srs"
-      },
-      {
-        "tag": "alibaba",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-alibaba.srs",
-        "update_interval": "24h",
-        "path": "./source/alibaba.srs"
-      },
-      {
-        "tag": "category-games@cn",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-category-games@cn.srs",
-        "update_interval": "24h",
-        "path": "./source/category-games@cn.srs"
-      },
-      {
-        "tag": "cn-domain",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://raw.githubusercontent.com/CHIZI-0618/v2ray-rules-dat/release/singbox_rule_set/geosite-cn.srs",
-        "update_interval": "24h",
-        "path": "./source/cn.srs"
-      },
-      {
-        "tag": "cn-ip",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/cn.srs",
-        "update_interval": "10d",
-        "path": "./source/cn-ip.srs"
-      }
-    ],
     "rules": [
-      {
-        "action": "sniff"
-      },
-      {
-        "type": "logical",
-        "mode": "or",
-        "rules": [
-          {
-            "port": 53
-          },
-          {
-            "protocol": "dns"
-          }
-        ],
-        "action": "hijack-dns"
-      },
-      {
-        "clash_mode": "Direct",
-        "action": "route",
-        "outbound": "direct"
-      },
-      {
-        "rule_set": [
-          "direct",
-          "alibaba",
-          "category-games@cn"
-        ],
-        "action": "route",
-        "outbound": "direct"
-      },
-      {
-        "rule_set": [
-          "proxy"
-        ],
-        "action": "route",
-        "outbound": "Proxy"
-      },
       {
         "type": "logical",
         "mode": "and",
         "rules": [
           {
-            "clash_mode": "AllowAds",
-            "invert": true
+            "ip_version": 6
           },
           {
-            "rule_set": [
-              "block",
-              "AWAvenue",
-              "category-ads-all"
-            ]
+            "default_interface_address": "2000::/3",
+            "invert": true
           }
         ],
         "action": "reject"
       },
       {
         "rule_set": [
-          "cn-domain"
+          "geoip-telegram",
+          "skip-sniff-domain"
         ],
-        "action": "route",
-        "outbound": "direct"
+        "invert": true,
+        "action": "sniff",
+        "sniffer": [
+          "dns",
+          "http",
+          "tls",
+          "quic"
+        ]
+      },
+      {
+        "type": "logical",
+        "mode": "or",
+        "rules": [
+          {
+            "protocol": "dns"
+          },
+          {
+            "port": 53
+          }
+        ],
+        "action": "hijack-dns"
+      },
+      {
+        "type": "logical",
+        "mode": "and",
+        "rules": [
+          {
+            "clash_mode": "Rule-AllowAds",
+            "invert": true
+          },
+          {
+            "rule_set": [
+              "pcdn-cn",
+              "reject-domain",
+              "category-ads-all",
+              "category-httpdns-cn"
+            ]
+          }
+        ],
+        "action": "reject"
+      },
+      {
+        "inbound": "download-in",
+        "outbound": "Download"
+      },
+      {
+        "port": 22,
+        "outbound": "Domestic"
+      },
+      {
+        "network": "icmp",
+        "outbound": "Domestic"
+      },
+      {
+        "rule_set": [
+          "private",
+          "stream-cn",
+          "googlefcm",
+          "direct-domain",
+          "category-speedtest@cn"
+        ],
+        "outbound": "Domestic"
+      },
+      {
+        "rule_set": "proxy-domain",
+        "outbound": "Proxy"
+      },
+      {
+        "rule_set": "emby-domain",
+        "outbound": "Emby"
+      },
+      {
+        "rule_set": [
+          "github",
+          "google"
+        ],
+        "outbound": "Google&Github"
+      },
+      {
+        "rule_set": "category-ai-!cn",
+        "outbound": "Ai"
+      },
+      {
+        "rule_set": "telegram",
+        "outbound": "Telegram"
+      },
+      {
+        "rule_set": "geolocation-!cn@cn",
+        "outbound": "Domestic"
+      },
+      {
+        "rule_set": [
+          "cn@!cn",
+          "geolocation-!cn"
+        ],
+        "outbound": "Proxy"
+      },
+      {
+        "rule_set": "cn",
+        "outbound": "Domestic"
       },
       {
         "action": "resolve",
         "match_only": true
       },
       {
-        "rule_set": "cn-ip",
-        "action": "route",
-        "outbound": "direct"
+        "rule_set": "geoip-telegram",
+        "outbound": "Telegram"
+      },
+      {
+        "rule_set": "geoip-google",
+        "outbound": "Google&Github"
       },
       {
         "ip_is_private": true,
-        "outbound": "direct"
+        "rule_set": "geoip-cn",
+        "outbound": "Domestic"
       }
     ],
-    "find_process": false,
+    "rule_set": [
+      {
+        "type": "remote",
+        "tag": "pcdn-cn",
+        "path": "./RuleProviders/pcdn-cn.srs",
+        "url": "https://ghfast.top/https://raw.githubusercontent.com/Yuu518/sing-box-rules/rule_set/rule_set_site/pcdn-cn.srs",
+        "http_client": "download_update",
+        "update_interval": "24h"
+      },
+      {
+        "type": "remote",
+        "tag": "category-httpdns-cn",
+        "path": "./RuleProviders/category-httpdns-cn.srs",
+        "url": "https://ghfast.top/https://raw.githubusercontent.com/nekolsd/sing-geosite/rule-set/category-httpdns-cn.srs",
+        "http_client": "download_update",
+        "update_interval": "24h"
+      },
+      {
+        "type": "remote",
+        "tag": "category-ads-all",
+        "path": "./RuleProviders/category-ads-all.srs",
+        "url": "https://ghfast.top/https://raw.githubusercontent.com/Yuu518/sing-box-rules/rule_set/rule_set_site/category-ads-all.srs",
+        "http_client": "download_update",
+        "update_interval": "24h"
+      },
+      {
+        "type": "remote",
+        "tag": "private",
+        "path": "./RuleProviders/private.srs",
+        "url": "https://ghfast.top/https://raw.githubusercontent.com/nekolsd/sing-geosite/rule-set/private.srs",
+        "http_client": "download_update",
+        "update_interval": "24h"
+      },
+      {
+        "type": "remote",
+        "tag": "googlefcm",
+        "path": "./RuleProviders/googlefcm.srs",
+        "url": "https://ghfast.top/https://raw.githubusercontent.com/nekolsd/sing-geosite/rule-set/googlefcm.srs",
+        "http_client": "download_update",
+        "update_interval": "24h"
+      },
+      {
+        "type": "remote",
+        "tag": "stream-cn",
+        "path": "./RuleProviders/stream-cn.srs",
+        "url": "https://ghfast.top/https://raw.githubusercontent.com/yagh779/sing-box-geosite/main/rule/direct.srs",
+        "http_client": "download_update",
+        "update_interval": "24h"
+      },
+      {
+        "type": "remote",
+        "tag": "category-speedtest@cn",
+        "path": "./RuleProviders/category-speedtest@cn.srs",
+        "url": "https://ghfast.top/https://raw.githubusercontent.com/nekolsd/sing-geosite/rule-set/category-speedtest@cn.srs",
+        "http_client": "download_update",
+        "update_interval": "24h"
+      },
+      {
+        "type": "remote",
+        "tag": "category-ai-!cn",
+        "path": "./RuleProviders/category-ai-!cn.srs",
+        "url": "https://ghfast.top/https://raw.githubusercontent.com/nekolsd/sing-geosite/rule-set/category-ai-!cn.srs",
+        "http_client": "download_update",
+        "update_interval": "24h"
+      },
+      {
+        "type": "remote",
+        "tag": "google",
+        "path": "./RuleProviders/google.srs",
+        "url": "https://ghfast.top/https://raw.githubusercontent.com/nekolsd/sing-geosite/rule-set/google.srs",
+        "http_client": "download_update",
+        "update_interval": "24h"
+      },
+      {
+        "type": "remote",
+        "tag": "github",
+        "path": "./RuleProviders/github.srs",
+        "url": "https://ghfast.top/https://raw.githubusercontent.com/nekolsd/sing-geosite/rule-set/github.srs",
+        "http_client": "download_update",
+        "update_interval": "24h"
+      },
+      {
+        "type": "remote",
+        "tag": "telegram",
+        "path": "./RuleProviders/telegram.srs",
+        "url": "https://ghfast.top/https://raw.githubusercontent.com/nekolsd/sing-geosite/rule-set/telegram.srs",
+        "http_client": "download_update",
+        "update_interval": "24h"
+      },
+      {
+        "type": "remote",
+        "tag": "geolocation-!cn@cn",
+        "path": "./RuleProviders/geolocation-!cn@cn.srs",
+        "url": "https://ghfast.top/https://raw.githubusercontent.com/nekolsd/sing-geosite/rule-set/geolocation-!cn@cn.srs",
+        "http_client": "download_update",
+        "update_interval": "24h"
+      },
+      {
+        "type": "remote",
+        "tag": "cn@!cn",
+        "path": "./RuleProviders/cn@!cn.srs",
+        "url": "https://ghfast.top/https://raw.githubusercontent.com/nekolsd/sing-geosite/rule-set/cn@!cn.srs",
+        "http_client": "download_update",
+        "update_interval": "24h"
+      },
+      {
+        "type": "remote",
+        "tag": "geolocation-!cn",
+        "path": "./RuleProviders/geolocation-!cn.srs",
+        "url": "https://ghfast.top/https://raw.githubusercontent.com/nekolsd/sing-geosite/rule-set/geolocation-!cn.srs",
+        "http_client": "download_update",
+        "update_interval": "24h"
+      },
+      {
+        "type": "remote",
+        "tag": "cn",
+        "path": "./RuleProviders/cn.srs",
+        "url": "https://ghfast.top/https://raw.githubusercontent.com/nekolsd/sing-geosite/rule-set/cn.srs",
+        "http_client": "download_update",
+        "update_interval": "24h"
+      },
+      {
+        "type": "remote",
+        "tag": "geoip-google",
+        "path": "./RuleProviders/geoip-google.srs",
+        "url": "https://ghfast.top/https://raw.githubusercontent.com/nekolsd/geoip/release/srs/google.srs",
+        "http_client": "download_update",
+        "update_interval": "24h"
+      },
+      {
+        "type": "remote",
+        "tag": "geoip-telegram",
+        "path": "./RuleProviders/geoip-telegram.srs",
+        "url": "https://ghfast.top/https://raw.githubusercontent.com/nekolsd/geoip/release/srs/telegram.srs",
+        "http_client": "download_update",
+        "update_interval": "24h"
+      },
+      {
+        "type": "remote",
+        "tag": "geoip-cn",
+        "path": "./RuleProviders/geoip-cn.srs",
+        "url": "https://ghfast.top/https://raw.githubusercontent.com/nekolsd/geoip/release/srs/cn.srs",
+        "http_client": "download_update",
+        "update_interval": "24h"
+      },
+      {
+        "type": "local",
+        "tag": "reject-domain",
+        "path": "./RuleProviders/reject-domain.json"
+      },
+      {
+        "type": "local",
+        "tag": "direct-domain",
+        "path": "./RuleProviders/direct-domain.json"
+      },
+      {
+        "type": "local",
+        "tag": "proxy-domain",
+        "path": "./RuleProviders/proxy-domain.json"
+      },
+      {
+        "type": "local",
+        "tag": "emby-domain",
+        "path": "./RuleProviders/emby-domain.json"
+      },
+      {
+        "type": "local",
+        "tag": "fakeip-filter-domain",
+        "path": "./RuleProviders/fakeip-filter-domain.json"
+      },
+      {
+        "type": "local",
+        "tag": "skip-sniff-domain",
+        "path": "./RuleProviders/skip-sniff-domain.json"
+      }
+    ],
+    "final": "Proxy",
     "auto_detect_interface": true,
-    "final": "Proxy"
+    "default_domain_resolver": "direct-dns",
+    "default_domain_match_strategy": "prefer_fqdn"
+  },
+  "services": [
+    {
+      "type": "api",
+      "tag": "sing-box dashboard",
+      "listen": "127.0.0.1",
+      "listen_port": 9901,
+      "secret": "singbox",
+      "dashboard": {
+        "enabled": true,
+        "path": "./Dashboard/nativeboard",
+        "download_url": "https://github.com/SagerNet/sing-box-dashboard/archive/refs/heads/gh-pages.zip",
+        "http_client": "download_proxy",
+        "update_interval": "7d"
+      }
+    }
+  ],
+  "experimental": {
+    "cache_file": {
+      "enabled": true,
+      "path": "./cache.db",
+      "store_dns": true
+    },
+    "clash_api": {
+      "external_controller": "127.0.0.1:9909",
+      "external_ui": "./Dashboard/zashboard",
+      "external_ui_download_url": "https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip",
+      "external_ui_http_client": "download_proxy",
+      "secret": "singbox"
+    },
+    "urltest_unified_delay": true
   }
 }

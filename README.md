@@ -30,7 +30,7 @@
 **注意**：
 
 - 模块默认提供的 `mihomo` 核心：[mihomo](https://github.com/MetaCubeX/mihomo)
-- 模块默认提供的 `sing-box` 核心：[sing-box](https://github.com/reF1nd/sing-box)
+- 模块默认提供的 `sing-box` 核心：[sing-box-reF1nd](https://github.com/reF1nd/sing-box)
 
 核心位置位于 `/data/adb/atun/bin/` ，或者也可手动下载对应设备架构的核心可执行文件，放置到 `/data/adb/atun/bin/` 目录下。
 
@@ -42,13 +42,13 @@
 核心工作目录：`/data/adb/atun/<核心名字>`  
 核心由 `/data/adb/atun/scripts/config.sh` 中的 `bin_name` 决定，可选值：
 
-- `sing-box`（推荐，默认）
-- `mihomo`
+- `sing-box`
+- `mihomo`（默认）
 
 **提示**：`mihomo` 和 `sing-box` 自带默认配置文件，已预设好与透明代理配合。建议直接编辑 `proxy-providers` 或 `outbounds` 部分添加您的节点。  
 进阶配置请参考官方文档：
 - [mihomo](https://wiki.metacubex.one)
-- [sing-box](https://sing-boxr.dustinwin.cc.cd)
+- [sing-box-reF1nd](https://sing-boxr.dustinwin.cc.cd)
 
 模块会自动检查配置文件合法性，结果保存在 `/data/adb/atun/run/check.log`。
 
