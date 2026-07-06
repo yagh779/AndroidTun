@@ -12,6 +12,21 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Download zashboard
+        run: |
+          curl --connect-timeout 5 --progress-bar -L -o dist.zip "https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip"
+          mv dist.zip atun/
+
+      - name: Download core
+        run: |
+          gh release download "Prerelease-Alpha" --repo "MetaCubeX/mihomo" --pattern "*android-arm64-v8*" --output mihomo-android-arm64.gz
+          gh release download --repo "reF1nd/sing-box-releases" --pattern "*android-arm64*" --output sing-box-android-arm64.tar.gz
+          gzip -dc mihomo-android-arm64.gz > mihomo && rm -f mihomo-android-arm64.gz
+          mkdir tmpggh
+          tar -zxvf sing-box-android-arm64.tar.gz -C tmpggh --strip-components=1 && mv tmpggh/sing-box sing-box && rm -rf tmpggh
+          zip core.zip mihomo sing-box
+          mv core.zip atun/
+
       - name: Run build.sh
         run: sh build.sh
 
