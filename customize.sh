@@ -39,6 +39,10 @@ if [ -d /data/adb/atun ] ; then
   rm -rf $MODPATH/atun
 else
   mv $MODPATH/atun /data/adb/
+	unzip -qo /data/adb/atun/core.zip -d /data/adb/atun/bin && rm -f /data/adb/atun/core.zip
+	unzip -qo /data/adb/atun/dist.zip -d /data/adb/atun/mihomo/Dashboard && rm -f /data/adb/atun/dist.zip
+	mv /data/adb/atun/mihomo/Dashboard/dist /data/adb/atun/mihomo/Dashboard/zashboard
+	cp -rf /data/adb/atun/mihomo/Dashboard/zashboard /data/adb/atun/sing-box/Dashboard/zashboard
 fi
 
 mv -f $MODPATH/atun_service.sh $service_dir/
