@@ -45,8 +45,9 @@
 - `sing-box`
 - `mihomo`（默认）
 
-**提示**：`mihomo` 和 `sing-box` 自带默认配置文件，已预设好与透明代理配合。建议直接编辑 `proxy-providers` 或 `outbounds` 部分添加您的节点。  
+**提示**：`mihomo` 和 `sing-box` 自带默认配置文件，已预设好与透明代理配合（您也可以在 [exampleConfig](https://github.com/yagh779/exampleConfig) 获取单独的预设配置文件）。建议直接编辑 `proxy-providers` 或 `outbounds` 部分添加您的节点。  
 进阶配置请参考官方文档：
+
 - [mihomo](https://wiki.metacubex.one)
 - [sing-box-reF1nd](https://sing-boxr.dustinwin.cc.cd)
 
